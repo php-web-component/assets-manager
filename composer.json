@@ -1,0 +1,32 @@
+{
+    "name": "php-web-component/assets-manager",
+    "description": "PHP Web Component Assets Manager",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bagus A Priambada",
+            "email": "iam.adty@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "PWC\\AssetsManager\\": "src/"
+        }
+    },
+    "require": {
+        "php-web-component/cli": "dev-develop"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../core"
+        },
+        {
+            "type": "path",
+            "url": "../cli"
+        }
+    ]
+}
