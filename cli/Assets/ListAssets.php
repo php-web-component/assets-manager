@@ -20,7 +20,7 @@ class ListAssets extends \PWC\CLI
 
         echo "Name\t\t\tPackage\t\t\t\t\tVersion\t\tDist" . PHP_EOL;
         foreach ($assetsDir as $assetDir) {
-            \PWC\Util\File::recursive_read($assetDir, function ($file) use ($assetDir) {
+            \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir) {
                 $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
                     $assetDir, '.php'
                 ], '', $file));

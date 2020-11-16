@@ -29,7 +29,7 @@ class PublishAssets extends \PWC\CLI
 
         $assetsFile = [];
         foreach ($assetsDir as $assetDir) {
-            \PWC\Util\File::recursive_read($assetDir, function ($file) use ($assetDir, &$assetsFile) {
+            \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir, &$assetsFile) {
                 $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
                     $assetDir, '.php'
                 ], '', $file));
@@ -60,7 +60,7 @@ class PublishAssets extends \PWC\CLI
             }
         } else {
             foreach ($this->assetsFile as $assetFile) {
-                \PWC\Util\File::recursive_read($this->_config['rootDir'] . $assetFile::$dist, function ($file) use ($assetFile) {
+                \PWC\Util\File::recursiveRead($this->_config['rootDir'] . $assetFile::$dist, function ($file) use ($assetFile) {
                     $targetFileName = $this->assetDir . '/' . $assetFile::$package . '/' . str_replace($this->_config['rootDir'], '', str_replace("{$assetFile::$dist}/", '', $file));
                     @mkdir(dirname($targetFileName), 0755, true);
                     @copy($file, $targetFileName);
