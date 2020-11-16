@@ -13,6 +13,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
+            "PWC\\CLI\\": "cli/",
             "PWC\\AssetsManager\\": "src/"
         }
     },
