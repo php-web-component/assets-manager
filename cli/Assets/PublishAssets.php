@@ -2,9 +2,6 @@
 
 class PublishAssets extends \PWC\CLI
 {
-    private $assetsFile = [];
-    private $assetDir = null;
-
     public function __construct()
     {
         parent::__construct('assets:publish', [
@@ -17,53 +14,36 @@ class PublishAssets extends \PWC\CLI
             \GetOpt\Operand::create('name', \GetOpt\Operand::MULTIPLE)
                 ->setDescription('Asset name')
         ]);
-    }
 
-    public function setConfig($config = [])
-    {
-        $parent = parent::setConfig($config);
-
-        $composerMap = array_merge($this->_config['composer']->getPrefixes(), $this->_config['composer']->getPrefixesPsr4(), $this->_config['composer']->getClassMap());
-
-        $assetsDir = $composerMap['PWC\\Asset\\'] ?? [];
-
-        $assetsFile = [];
-        foreach ($assetsDir as $assetDir) {
-            \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir, &$assetsFile) {
-                $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
-                    $assetDir, '.php'
-                ], '', $file));
-                $assetsFile[] = $assetFile;
-            });
-        }
-
-        $this->assetsFile = $assetsFile;
-
-        $composerFile = $this->_config['rootDir'] . 'composer.json';
-        $composerJson = json_decode(file_get_contents($composerFile));
-        if (isset($composerJson->extra->pwc->assets->dir)) {
-            $this->assetDir = $this->_config['rootDir'] . $composerJson->extra->pwc->assets->dir;
-        }
-
-        if (!is_null($this->assetDir)) {
-            @mkdir($this->assetDir, 0755, true);
-        }
-
-        return $this;
+        \PWC\Config::register(\PWC\AssetsManager\Config::class);
     }
 
     public function run(\GetOpt\GetOpt $opt)
     {
+        if (!is_null(\PWC\AssetsManager\Config::get('dir'))) {
+            @mkdir(\PWC\Config\RootDir::get() . \PWC\AssetsManager\Config::get('dir'), 0755, true);
+        }
+
         if (count($opt->getOperands()) > 0) {
             foreach ($opt->getOperands() as $name) {
                 
             }
         } else {
-            foreach ($this->assetsFile as $assetFile) {
-                \PWC\Util\File::recursiveRead($this->_config['rootDir'] . $assetFile::$dist, function ($file) use ($assetFile) {
-                    $targetFileName = $this->assetDir . '/' . $assetFile::$package . '/' . str_replace($this->_config['rootDir'], '', str_replace("{$assetFile::$dist}/", '', $file));
-                    @mkdir(dirname($targetFileName), 0755, true);
-                    @copy($file, $targetFileName);
+            foreach ((array_merge(\PWC\CLI\Config::get('composerAutoload')->getPrefixes(), \PWC\CLI\Config::get('composerAutoload')->getPrefixesPsr4(), \PWC\CLI\Config::get('composerAutoload')->getClassMap())['PWC\\Asset\\'] ?? []) as $assetDir) {
+
+                \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir) {
+                    $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
+                        $assetDir, '.php'
+                    ], '', $file));
+
+                    if (is_subclass_of($assetFile, \PWC\Asset::class)) {
+                        \PWC\Util\File::recursiveRead(\PWC\Config\RootDir::get() . $assetFile::$dist, function ($file2) use ($assetFile) {
+                            $targetFileName = \PWC\Config\RootDir::get() . \PWC\AssetsManager\Config::get('dir') . $assetFile::$package . '/' . str_replace(\PWC\Config\RootDir::get(), '', str_replace("{$assetFile::$dist}/", '', $file2));
+                            @mkdir(dirname($targetFileName), 0755, true);
+                            @copy($file2, $targetFileName);
+                            echo realpath($file2) . ' copied to ' . realpath($targetFileName) . PHP_EOL;
+                        });
+                    }
                 });
             }
         }

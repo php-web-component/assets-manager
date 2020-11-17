@@ -10,21 +10,23 @@ class ListAssets extends \PWC\CLI
 
         $this->setShortDescription('List Available Assets');
         $this->setDescription('List Available Assets');
+
+        \PWC\Config::register(\PWC\AssetsManager\Config::class);
     }
 
     public function run(\GetOpt\GetOpt $opt)
     {
-        $composerMap = array_merge($this->_config['composer']->getPrefixes(), $this->_config['composer']->getPrefixesPsr4(), $this->_config['composer']->getClassMap());
-
-        $assetsDir = $composerMap['PWC\\Asset\\'] ?? [];
-
         echo "Name\t\t\tPackage\t\t\t\t\tVersion\t\tDist" . PHP_EOL;
-        foreach ($assetsDir as $assetDir) {
+        foreach ((array_merge(\PWC\CLI\Config::get('composerAutoload')->getPrefixes(), \PWC\CLI\Config::get('composerAutoload')->getPrefixesPsr4(), \PWC\CLI\Config::get('composerAutoload')->getClassMap())['PWC\\Asset\\'] ?? []) as $assetDir) {
+
             \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir) {
                 $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
                     $assetDir, '.php'
                 ], '', $file));
-                echo $assetFile::$name . "\t\t" . $assetFile::$package . "\t\t" . $assetFile::$version . "\t\t" . $assetFile::$dist . PHP_EOL;
+
+                if (is_subclass_of($assetFile, \PWC\Asset::class)) {
+                    echo $assetFile::$name . "\t\t" . $assetFile::$package . "\t\t" . $assetFile::$version . "\t\t" . $assetFile::$dist . PHP_EOL;
+                }
             });
         }
     }
