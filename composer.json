@@ -18,16 +18,24 @@
         }
     },
     "require": {
-        "php-web-component/cli": "dev-develop"
+        "php-web-component/cli": "dev-develop",
+        "php-web-component/asset": "dev-develop",
+        "jc21/clitable": "^1.2"
+    },
+    "scripts": {
+        "pwc": "vendor/bin/pwc"
     },
     "repositories": [
         {
-            "type": "path",
-            "url": "../core"
+            "type": "composer",
+            "url": "http://localhost/satis"
         },
         {
-            "type": "path",
-            "url": "../cli"
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
-    ]
+    ],
+    "config": {
+        "secure-http": false
+    }
 }

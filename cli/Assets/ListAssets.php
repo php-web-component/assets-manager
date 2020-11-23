@@ -1,6 +1,15 @@
 <?php namespace PWC\CLI\Assets;
 
-class ListAssets extends \PWC\CLI
+use GetOpt\GetOpt;
+use jc21\CliTable;
+use PWC\Asset;
+use PWC\AssetsManager\Config as AssetsManagerConfig;
+use PWC\CLI;
+use PWC\CLI\Config as CLIConfig;
+use PWC\Config;
+use PWC\Util\File;
+
+class ListAssets extends CLI
 {
     public function __construct()
     {
@@ -11,23 +20,38 @@ class ListAssets extends \PWC\CLI
         $this->setShortDescription('List Available Assets');
         $this->setDescription('List Available Assets');
 
-        \PWC\Config::register(\PWC\AssetsManager\Config::class);
+        Config::register(AssetsManagerConfig::class);
     }
 
-    public function run(\GetOpt\GetOpt $opt)
+    public function run(GetOpt $opt)
     {
-        echo "Name\t\t\tPackage\t\t\t\t\tVersion\t\tDist" . PHP_EOL;
-        foreach ((array_merge(\PWC\CLI\Config::get('composerAutoload')->getPrefixes(), \PWC\CLI\Config::get('composerAutoload')->getPrefixesPsr4(), \PWC\CLI\Config::get('composerAutoload')->getClassMap())['PWC\\Asset\\'] ?? []) as $assetDir) {
+        $table = new CliTable();
+        $table->addField('Name', 'name');
+        $table->addField('Package', 'package');
+        $table->addField('Package', 'package');
+        $table->addField('Version', 'version');
+        $table->addField('Dist', 'dist');
 
-            \PWC\Util\File::recursiveRead($assetDir, function ($file) use ($assetDir) {
+        $data = [];
+        foreach ((array_merge(CLIConfig::get('composerAutoload')->getPrefixes(), CLIConfig::get('composerAutoload')->getPrefixesPsr4(), CLIConfig::get('composerAutoload')->getClassMap())['PWC\\Asset\\'] ?? []) as $assetDir) {
+
+            File::recursiveRead($assetDir, function ($file) use ($assetDir, &$data) {
                 $assetFile = '\\PWC\\Asset' . str_replace('/', '\\', str_replace([
                     $assetDir, '.php'
                 ], '', $file));
 
-                if (is_subclass_of($assetFile, \PWC\Asset::class)) {
-                    echo $assetFile::$name . "\t\t" . $assetFile::$package . "\t\t" . $assetFile::$version . "\t\t" . $assetFile::$dist . PHP_EOL;
+                if (is_subclass_of($assetFile, Asset::class)) {
+                    $data[] = [
+                        'name' => $assetFile::$name,
+                        'package' => $assetFile::$package,
+                        'version' => $assetFile::$version,
+                        'dist' => $assetFile::$dist
+                    ];
                 }
             });
         }
+
+        $table->injectData($data);
+        $table->display();
     }
 }
