@@ -4,11 +4,10 @@ use GetOpt\GetOpt;
 use GetOpt\Operand;
 use jc21\CliTable;
 use PWC\Asset;
-use PWC\AssetsManager\Config as AssetsManagerConfig;
 use PWC\CLI;
 use PWC\CLI\Config as CLIConfig;
-use PWC\Config;
-use PWC\Config\RootDir;
+use PWC\Config\Application;
+use PWC\Config\Asset as ConfigAsset;
 use PWC\Util\File;
 
 class PublishAssets extends CLI
@@ -25,14 +24,12 @@ class PublishAssets extends CLI
             Operand::create('name', Operand::MULTIPLE)
                 ->setDescription('Asset name')
         ]);
-
-        Config::register(AssetsManagerConfig::class);
     }
 
     public function run(GetOpt $opt)
     {
-        if (!is_null(AssetsManagerConfig::get('dir'))) {
-            @mkdir(RootDir::get() . AssetsManagerConfig::get('dir'), 0755, true);
+        if (!is_null(ConfigAsset::get('dir'))) {
+            @mkdir(Application::get('rootDir') . ConfigAsset::get('dir'), 0755, true);
         }
 
         if (count($opt->getOperands()) > 0) {
@@ -54,14 +51,14 @@ class PublishAssets extends CLI
                     ], '', $file));
 
                     if (is_subclass_of($assetFile, Asset::class)) {
-                        File::recursiveRead(RootDir::get() . $assetFile::$dist, function ($file2) use ($assetFile, &$data) {
-                            $targetFileName = RootDir::get() . AssetsManagerConfig::get('dir') . $assetFile::$package . '/' . str_replace(RootDir::get(), '', str_replace("{$assetFile::$dist}/", '', $file2));
+                        File::recursiveRead(Application::get('rootDir') . $assetFile::$dist, function ($file2) use ($assetFile, &$data) {
+                            $targetFileName = Application::get('rootDir') . ConfigAsset::get('dir') . $assetFile::$package . '/' . str_replace(Application::get('rootDir'), '', str_replace("{$assetFile::$dist}/", '', $file2));
                             @mkdir(dirname($targetFileName), 0755, true);
                             $copy = @copy($file2, $targetFileName);
 
                             $data[] = [
                                 'package' => $assetFile::$package,
-                                'file' => str_replace($assetFile::$dist . '/', '', str_replace(RootDir::get(), '', $file2)),
+                                'file' => str_replace($assetFile::$dist . '/', '', str_replace(Application::get('rootDir'), '', $file2)),
                                 'status' => $copy ? 'OK' : 'NOK'
                             ];
                         });

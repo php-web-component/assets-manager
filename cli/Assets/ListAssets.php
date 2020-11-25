@@ -3,7 +3,6 @@
 use GetOpt\GetOpt;
 use jc21\CliTable;
 use PWC\Asset;
-use PWC\AssetsManager\Config as AssetsManagerConfig;
 use PWC\CLI;
 use PWC\CLI\Config as CLIConfig;
 use PWC\Config;
@@ -19,8 +18,6 @@ class ListAssets extends CLI
 
         $this->setShortDescription('List Available Assets');
         $this->setDescription('List Available Assets');
-
-        Config::register(AssetsManagerConfig::class);
     }
 
     public function run(GetOpt $opt)
